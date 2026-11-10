@@ -1,0 +1,15 @@
+{
+  "name": "Lovia SR Order Manager",
+  "short_name": "Lovia App",
+  "start_url": "/lovia_app/index.php",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#2c3e50",
+  "icons": [
+    {
+      "src": "/lovia_app/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

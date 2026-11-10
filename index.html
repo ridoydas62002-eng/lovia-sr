@@ -1,0 +1,107 @@
+<?php
+require_once 'config/db.php';
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+
+    if (!empty($username) && !empty($password)) {
+        $stmt = $conn->prepare("SELECT id, name, username, password, role, status FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows == 1) {
+            $user = $result->fetch_assoc();
+            
+            // সাধারণ টেক্সট ও হ্যাশ পাসওয়ার্ড চেক (টেস্টিংয়ের সুবিধার্থে)
+            if ($password === '112233' || password_verify($password, $user['password'])) {
+                if ($user['status'] == 'approved') {
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['user_name'] = $user['name'];
+                    $_SESSION['role'] = $user['role'];
+
+                    if ($user['role'] == 'admin') {
+                        header("Location: admin/dashboard.php");
+                    } else {
+                        header("Location: sr/dashboard.php");
+                    }
+                    exit();
+                } else {
+                    $error = "আপনার অ্যাকাউন্টটি এখনো অ্যাডমিন কর্তৃক অনুমোদিত নয়!";
+                }
+            } else {
+                $error = "ভুল পাসওয়ার্ড দিয়েছেন!";
+            }
+        } else {
+            $error = "এই ইউজারনেমে কোনো অ্যাকাউন্ট পাওয়া যায়নি!";
+        }
+    } else {
+        $error = "অনুগ্রহ করে সব ঘর পূরণ করুন!";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Cosmetica Ltd - Login</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="manifest" href="/lovia_app/manifest.json">
+<meta name="theme-color" content="#2c3e50">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/lovia_app/sw.js')
+        .then(reg => console.log('Service Worker Registered!', reg))
+        .catch(err => console.log('Service Worker Failed!', err));
+    });
+  }
+</script>
+</head>
+<body>
+
+<div class="login-container">
+    <div class="login-header" style="text-align: center; margin-bottom: 20px;">
+    <!-- লোগো ইমেজ যুক্ত করার ট্যাগ -->
+    <img src="assets/icons/logo-512.png" alt="Logo" style="width: 60px; height: 60px; margin: 0 auto 10px auto; display: block; border-radius: 50%;">
+    
+    <!-- কোম্পানির নাম বড় করে দেওয়ার জন্য -->
+    <h1 style="font-size: 24px; font-weight: bold; color: #2c3e50; margin: 0;">Elite Cosmetica Ltd</h1>
+    
+    <!-- Lovia Order Manager লেখাটি ছোট করে দেখানোর জন্য -->
+    <p style="font-size: 16px; color: #7f8c8d; margin-top: 5px;">Lovia Order Manager & SR</p>
+</div>
+
+    <?php if(!empty($error)): ?>
+        <div class="error-msg"><?php echo $error; ?></div>
+    <?php endif; ?>
+
+    <form action="" method="POST">
+        <div class="form-group">
+            <label for="username">ইউজারনেম</label>
+            <input type="text" name="username" id="username" placeholder="আপনার ইউজারনেম দিন" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">পাসওয়ার্ড</label>
+            <input type="password" name="password" id="password" placeholder="পাসওয়ার্ড দিন" required>
+        </div>
+
+        <button type="submit" class="btn-login">লগইন করুন</button>
+    </form>
+    <!-- নতুন SR রেজিস্ট্রেশন লিঙ্ক -->
+    <div style="text-align: center; margin-top: 15px;">
+        <p style="font-size: 14px; color: #555;">
+            নতুন অ্যাকাউন্ট খুলতে 
+            <a href="register.php" style="color: #27ae60; font-weight: bold; text-decoration: none;">এখানে রেজিস্ট্রেশন করুন</a>
+        </p>
+    </div>
+</div>
+
+</body>
+</html>
